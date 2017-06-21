@@ -22,8 +22,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###########################################################################
 
+# Handy OBD-II code reference with conversions:
+# https://en.wikipedia.org/wiki/OBD-II_PIDs
+
 def hex_to_int(str):
+	i = 0
+	try:
     i = eval("0x" + str, {}, {})
+	except SyntaxError:
+		pass
     return i
 
 def maf(code):
@@ -57,6 +64,11 @@ def timing_advance(code):
 def sec_to_min(code):
     code = hex_to_int(code)
     return code / 60
+
+def liters_hour(code):
+    # this actually returns gallons / hour for fuel rate. (1 gal = 3.785 L or so)
+    code = hex_to_int(code)
+    return code / 75.7
 
 def temp(code):
     code = hex_to_int(code)
@@ -153,6 +165,7 @@ SENSORS = [
     Sensor("speed"                 , "Vehicle Speed"				, "010D1", speed            ,"MPH"    ),
     Sensor("timing_advance"        , "Timing Advance"				, "010E" , timing_advance   ,"degrees"),
     Sensor("intake_air_temp"       , "Intake Air Temp"				, "010F" , temp             ,"F"      ),
+    Sensor("ambient_air_temp"      , "Ambient Air Temp"				, "0146" , temp             ,"F"      ),
     Sensor("maf"                   , "AirFlow Rate(MAF)"			, "0110" , maf              ,"lb/min" ),
     Sensor("throttle_pos"          , "Throttle Position"			, "01111", throttle_pos     ,"%"      ),
     Sensor("secondary_air_status"  , "2nd Air Status"				, "0112" , cpass            ,""       ),
@@ -169,7 +182,10 @@ SENSORS = [
     Sensor("o2_sensor_position_b"  , "Loc of O2 sensor" 			, "011D" , cpass            ,""       ),
     Sensor("aux_input"             , "Aux input status"				, "011E" , cpass            ,""       ),
     Sensor("engine_time"           , "Engine Start MIN"				, "011F" , sec_to_min       ,"min"    ),
+    Sensor("fuel_level"           , "Fuel tank level input"			, "012F" , percent_scale       ,"%"    ),
+    Sensor("accel_pedal"           , "Accelerator position"			, "015A" , percent_scale       ,"%"    ),
     Sensor("engine_mil_time"       , "Engine Run MIL"				, "014D" , sec_to_min       ,"min"    ),
+    Sensor("engine_fuel_rate"       , "Engine Fuel Rate"			, "014D" , liters_hour       ,"gal/h"    ),
     ]
      
     

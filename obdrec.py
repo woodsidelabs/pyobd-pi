@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import obd_io
+import os
 import serial
 import platform
 import obd_sensors
@@ -17,8 +18,8 @@ class OBD_Recorder():
         self.sensorlist = []
         localtime = time.localtime(time.time())
         filename = path+"car-"+str(localtime[0])+"-"+str(localtime[1])+"-"+str(localtime[2])+"-"+str(localtime[3])+"-"+str(localtime[4])+"-"+str(localtime[5])+".log"
-        self.log_file = open(filename, "w", 128)
-        self.log_file.write("Time,RPM,MPH,Throttle,Load,Fuel Status\n");
+        self.log_file = open(filename, "a+", 128)
+        self.log_file.write("Time,RPM,MPH,Throttle,Load,Fuel Status,Fuel Level,Coolant Temp,Intake Air Temp\n");
 
         for item in log_items:
             self.add_log_item(item)
@@ -59,25 +60,43 @@ class OBD_Recorder():
         print "Logging started"
         
         while 1:
+	    #osint = os.system('clear')
             localtime = datetime.now()
-            current_time = str(localtime.hour)+":"+str(localtime.minute)+":"+str(localtime.second)+"."+str(localtime.microsecond)
-            log_string = current_time
+            current_time = str(localtime.hour)+":"+str(localtime.minute)+":"+str(localtime.second)#+"."+str(localtime.microsecond)
+            log_string = '{:%H:%M:%S}'.format(localtime)#current_time
+            state_string = 'Time: <b>{:%H:%M:%S}</b>\n'.format(localtime)#current_time
             results = {}
             for index in self.sensorlist:
                 (name, value, unit) = self.port.sensor(index)
-                log_string = log_string + ","+str(value)
+		valuestr = value
+	        try:
+        	        val = float(value)
+			valuestr = "%.2f" % val
+        	except ValueError:
+                	pass
+                log_string = log_string + "," + valuestr #+str(value)
+		state_string = state_string + name+": <b>"+str(value)+" "+unit+"</b>\n"
                 results[obd_sensors.SENSORS[index].shortname] = value;
 
-            gear = self.calculate_gear(results["rpm"], results["speed"])
-            log_string = log_string #+ "," + str(gear)
+            # gear = self.calculate_gear(results["rpm"], results["speed"])
+            log_string = log_string # + "," + str(gear)
+            print log_string
             self.log_file.write(log_string+"\n")
-
+	    state_file = open("/tmp/car.log", "w", 128)
+	    state_file.write(state_string)
+	    state_file.close()
+	    time.sleep(0.5)
             
     def calculate_gear(self, rpm, speed):
         if speed == "" or speed == 0:
             return 0
         if rpm == "" or rpm == 0:
             return 0
+
+	try:
+		val = int(rpm)
+	except ValueError:
+		return 0
 
         rps = int(rpm)/60
         mps = (speed*1.609*1000)/3600
@@ -94,7 +113,7 @@ class OBD_Recorder():
         return gear
         
 username = getpass.getuser()  
-logitems = ["rpm", "speed", "throttle_pos", "load", "fuel_status"]
+logitems = ["rpm", "speed", "accel_pedal", "throttle_pos", "fuel_level", "engine_fuel_rate", "ambient_air_temp", "intake_air_temp", "temp"]
 o = OBD_Recorder('/home/'+username+'/pyobd-pi/log/', logitems)
 o.connect()
 

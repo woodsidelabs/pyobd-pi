@@ -1,5 +1,17 @@
 pyobd
 =====
+ModPyOBDPi: Raspberry Pi for Recording and Displaying OBD-II Car Sensors and Diagnostics 
+
+This fork extends the original functionality to support more sensors and browser-based view for an attached display or on your mobile device.
+
+Some additions to the code:
+obdrec.py - extended logging and web view.  This is started using the helper scripts in the "scripts" folder and visualized by the web page in the "html" folder.
+html folder - web-based OBD-II display.  Copy to /var/www/html on your RPi.
+scripts folder - startup and other scripts.  I run these from .bashrc with the RPi configured for CLU auto-login as "pi".
+
+The original README below gives quite a bit more detail on setup and instructions to build a head unit display.
+
+(Original README.md text follows)
 
 <pre>OBD-Pi: Raspberry Pi Displaying Car Diagnostics (OBD-II) Data On An Aftermarket Head Unit
 
